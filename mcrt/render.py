@@ -1,4 +1,6 @@
 from mcrt.geometry import Ray, subtract3
+from mcrt.material import Material
+
 from PIL import Image
 
 
@@ -6,17 +8,26 @@ class Scene:
     def __init__(self):
         self.objects = []
 
-    def add(self, obj):
-        self.objects.append(obj)
+    def add(self, obj, color):
+        self.objects.append((obj, color))
 
     def intersect(self, ray):
-        for obj in self.objects:
-            intersect, _ = obj.intersect(ray)
+        found = False
+        min_f = 0
+        result = (0, 0, 0)
 
-            if intersect:
-                return True
+        for obj, color in self.objects:
+            intersect, f = obj.intersect(ray)
 
-        return False
+            if not intersect:
+                continue
+
+            if (not found) or (f < min_f):
+                found = True
+                min_f = f
+                result = color
+
+        return result
 
 
 class Renderer:
@@ -49,10 +60,7 @@ class Renderer:
 
                 ray.direction = subtract3(pixel, self.camera)
 
-                if self.scene.intersect(ray):
-                    data.append((255, 255, 255))
-                else:
-                    data.append((0, 0, 0))
+                data.append(self.scene.intersect(ray))
 
         img.putdata(data)
         img.show()
