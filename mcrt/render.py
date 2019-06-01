@@ -1,6 +1,7 @@
 from mcrt.geometry import Ray, subtract3
 from PIL import Image
 
+
 class Scene:
     def __init__(self):
         self.objects = []
@@ -10,10 +11,10 @@ class Scene:
 
     def intersect(self, ray):
         for obj in self.objects:
-           intersect, _ =  obj.intersect(ray)
+            intersect, _ = obj.intersect(ray)
 
-           if intersect:
-               return True
+            if intersect:
+                return True
 
         return False
 
@@ -28,7 +29,6 @@ class Renderer:
         self.screen = (0, 0, 0)
         self.projection_w = 1.00
         self.projection_h = 0.75
-
 
     def render(self):
         img = Image.new("RGB", (self.image_w, self.image_h))
