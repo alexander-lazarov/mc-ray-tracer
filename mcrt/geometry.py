@@ -1,15 +1,52 @@
-import numpy as np
+EPSILON = 1e-7
+
+def dot3(a, b):
+    return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
+
+
+def cross3(a, b):
+    return (a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0])
+
+
+def subtract3(a, b):
+    return (a[0] - b[0],
+            a[1] - b[1],
+            a[2] - b[2])
+
+
+def add3(a, b):
+    return (a[0] + b[0],
+            a[1] + b[1],
+            a[2] + b[2])
+
+def equal3(a, b):
+    return abs(a[0] - b[0]) < EPSILON and \
+        abs(a[1] - b[1]) < EPSILON and \
+        abs(a[2] - b[2]) < EPSILON
+
+
+def equal4(a, b):
+    return abs(a[0] - b[0]) < EPSILON and \
+        abs(a[1] - b[1]) < EPSILON and \
+        abs(a[2] - b[2]) < EPSILON and \
+        abs(a[3] - b[3]) < EPSILON
+
+
+def product3(a, n):
+    return (a[0] * n, a[1] * n, a[2] * n)
 
 
 def are_on_same_side(p1, p2, a, b):
     """
     Checks if p1 and p2 are on the same side of ab
     """
-    ab = b - a
-    cp1 = np.cross(ab, p1 - a)
-    cp2 = np.cross(ab, p2 - a)
+    ab = subtract3(b, a)
+    cp1 = cross3(ab, subtract3(p1, a))
+    cp2 = cross3(ab, subtract3(p2, a))
 
-    return np.dot(cp1, cp2) >= 0
+    return dot3(cp1, cp2) >= 0
 
 
 class Ray:
@@ -26,7 +63,9 @@ class Ray:
         Returns the coordinates of a point on the ray for a given parameter
         value t
         """
-        return self.origin + t * self.direction
+        return (self.origin[0] + t * self.direction[0],
+                self.origin[1] + t * self.direction[1],
+                self.origin[2] + t * self.direction[2])
 
     def intersect(self, plane):
         """
@@ -35,14 +74,15 @@ class Ray:
             - True if intersection exists, otherwise False
             - the value of t of the intersection point, if exists
         """
-        tcoeff = np.dot(self.direction, plane[0:3])
+        tcoeff = dot3(self.direction, plane[0:3])
 
-        if np.allclose(tcoeff, 0):
+        if abs(tcoeff) < EPSILON:
             # The plane is parallel ot the direction of the vector, so
             # no intersection
             return False, None
 
-        freecoeff = -np.dot(self.origin, plane[0:3]) - plane[3]
+        freecoeff = - dot3(self.origin, plane) - plane[3]
+
         t = freecoeff / tcoeff
 
         return True, t
@@ -58,14 +98,14 @@ class Triangle:
         """
         Returns the plane the triangle is laying on
         """
-        v1 = self.b - self.a
-        v2 = self.c - self.a
+        v1 = subtract3(self.b, self.a)
+        v2 = subtract3(self.c, self.a)
 
-        cp = np.cross(v1, v2)
+        cp = cross3(v1, v2)
         a, b, c = cp
-        d = -np.dot(cp, self.a)
+        d = -dot3(cp, self.a)
 
-        return np.array([a, b, c, d])
+        return (a, b, c, d)
 
     def is_inside(self, p):
         """
