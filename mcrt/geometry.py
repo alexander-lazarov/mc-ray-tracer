@@ -130,7 +130,7 @@ class Plane:
         """
         does_intersect, t = ray.intersect(self.plane)
 
-        if (not does_intersect) or t < 0:
+        if (not does_intersect) or t < EPSILON:
             return False, None
 
         intersection = ray.value(t)

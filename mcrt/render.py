@@ -1,7 +1,9 @@
-from mcrt.geometry import Ray, subtract3, unit3, dot3, product3
+from mcrt.geometry import Ray, add3, subtract3, unit3, dot3, product3
 from mcrt.material import Material
+from mcrt.util import random_hemisphere
+
 from random import random
-from math import pow
+from math import pow, sqrt
 
 from PIL import Image
 
@@ -18,7 +20,7 @@ class Scene:
 
     def is_directly_illuminated(self, point):
         dir = subtract3(self.lightsource, point)
-        d = dot3(dir, dir)
+        d = sqrt(dot3(dir, dir))
         ray = Ray(point, unit3(dir))
 
         found = False
@@ -27,7 +29,7 @@ class Scene:
             intersect, t = obj.intersect(ray)
 
             if intersect and t < d:
-                return True
+                return False
 
         return True
 
@@ -60,9 +62,19 @@ class Scene:
                 if self.is_directly_illuminated(intersection):
                     cos = abs(dot3(ray.direction, found_obj.normal))
 
-                    return product3(found_color, cos)
+                    direct = product3(found_color, cos * 0.8)
                 else:
-                    return (0, 0, 0)
+                    direct = (0, 0, 0)
+
+                if bounces > 0:
+                    next_ray = Ray(
+                        intersection, random_hemisphere(found_obj.normal))
+                    indirect = product3(
+                        self.intersect(next_ray, bounces - 1), 0.8)
+                else:
+                    indirect = (0, 0, 0)
+
+                return add3(direct, indirect)
             elif found_material == Material.MATERIAL_MIRROR:
                 # TODO
                 return (0, 0, 0)
@@ -71,12 +83,12 @@ class Scene:
 class Renderer:
     def __init__(self, scene):
         self.scene = scene
-        self.image_w = 240
-        self.image_h = 180
+        self.image_w = 320
+        self.image_h = 240
 
-        self.bounces = 5
+        self.bounces = 40
 
-        self.samples_per_pixel = 10
+        self.samples_per_pixel = 3
 
         self.camera = (0.2, 0.2, -1)
         self.screen = (0, 0, 0)
@@ -123,3 +135,7 @@ class Renderer:
 
         img.putdata(data)
         img.show()
+
+        fname = f"sample_{self.image_w}x{self.image_h}_" \
+                f"{self.samples_per_pixel}_{self.bounces}.png"
+        img.save(fname)
