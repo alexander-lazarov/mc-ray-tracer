@@ -98,6 +98,7 @@ class Ray:
 
         return True, t
 
+
 class Plane:
     def __init__(self, a, b, c):
         self.a = a
@@ -135,6 +136,7 @@ class Plane:
         intersection = ray.value(t)
 
         return True, t
+
 
 class Triangle:
     def __init__(self, a, b, c):

@@ -75,8 +75,10 @@ class Renderer:
                 result_b = 0.
 
                 for _ in range(self.samples_per_pixel):
-                    yoffset = (y - (self.image_h / 2)) * step_w + step_w*random()
-                    xoffset = (x - (self.image_w / 2)) * step_h + step_h*random()
+                    yoffset = (y - (self.image_h / 2)) * step_w + \
+                        step_w*random()
+                    xoffset = (x - (self.image_w / 2)) * step_h + \
+                        step_h*random()
 
                     pixel = (xoffset, yoffset, self.screen[2])
 
@@ -86,7 +88,6 @@ class Renderer:
                     result_r += r
                     result_g += g
                     result_b += b
-
 
                 data.append((
                     int(result_r / self.samples_per_pixel),
