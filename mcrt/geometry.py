@@ -89,12 +89,50 @@ class Ray:
 
         return True, t
 
+class Plane:
+    def __init__(self, a, b, c):
+        self.a = a
+        self.b = b
+        self.c = c
+
+        self.plane = self.plane()
+
+    def plane(self):
+        """
+        Returns the plane the triangle is laying on
+        """
+        v1 = subtract3(self.b, self.a)
+        v2 = subtract3(self.c, self.a)
+
+        cp = cross3(v1, v2)
+        a, b, c = cp
+        d = -dot3(cp, self.a)
+
+        return (a, b, c, d)
+
+    def intersect(self, ray):
+        """
+        Checks if a ray intersects the triangle. Has two return values:
+            - does_intersect - if the ray intersects the triangle (bool)
+            - t - the t parameter value for the ray. It is guaranteed
+                to be > 0 if does_intersect is True
+        """
+        does_intersect, t = ray.intersect(self.plane)
+
+        if (not does_intersect) or t < 0:
+            return False, None
+
+        intersection = ray.value(t)
+
+        return True, t
 
 class Triangle:
     def __init__(self, a, b, c):
         self.a = a
         self.b = b
         self.c = c
+
+        self.plane = self.plane()
 
     def plane(self):
         """
@@ -127,9 +165,7 @@ class Triangle:
             - t - the t parameter value for the ray. It is guaranteed
                 to be > 0 if does_intersect is True
         """
-        plane = self.plane()
-
-        does_intersect, t = ray.intersect(plane)
+        does_intersect, t = ray.intersect(self.plane)
 
         if (not does_intersect) or t < 0:
             return False, None
