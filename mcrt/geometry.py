@@ -1,3 +1,6 @@
+from math import sqrt
+
+
 EPSILON = 1e-7
 
 
@@ -38,6 +41,12 @@ def equal4(a, b):
 
 def product3(a, n):
     return (a[0] * n, a[1] * n, a[2] * n)
+
+
+def unit3(a):
+    d = 1. / sqrt(a[0] * a[0] + a[1] * a[1] + a[2] * a[2])
+
+    return (a[0] * d, a[1] * d, a[2] * d)
 
 
 def are_on_same_side(p1, p2, a, b):
@@ -96,6 +105,7 @@ class Plane:
         self.c = c
 
         self.plane = self.plane()
+        self.normal = unit3(self.plane)
 
     def plane(self):
         """
@@ -133,6 +143,7 @@ class Triangle:
         self.c = c
 
         self.plane = self.plane()
+        self.normal = unit3(self.plane)
 
     def plane(self):
         """

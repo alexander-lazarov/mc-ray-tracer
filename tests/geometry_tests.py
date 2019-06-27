@@ -1,5 +1,15 @@
 import unittest
-from mcrt.geometry import Triangle, Ray, equal3, equal4
+from mcrt.geometry import Triangle, Ray, equal3, equal4, unit3
+
+
+class Unit3Tests(unittest.TestCase):
+    def test_unit3(self):
+        v = (1, 1, 1)
+        r = (0.5773502691896258, 0.5773502691896258, 0.5773502691896258)
+
+        self.assertTrue(
+            equal3(unit3(v), r)
+        )
 
 
 class RayTests(unittest.TestCase):
@@ -31,7 +41,7 @@ class TriangleTests(unittest.TestCase):
                 (0, 0, 1))
 
         self.assertTrue(
-                equal4(triangle.plane(), (1, 1, 1, -1)))
+                equal4(triangle.plane, (1, 1, 1, -1)))
 
     def test_is_inside_1(self):
         triangle = Triangle(

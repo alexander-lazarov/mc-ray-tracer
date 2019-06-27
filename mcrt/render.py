@@ -1,4 +1,4 @@
-from mcrt.geometry import Ray, subtract3
+from mcrt.geometry import Ray, subtract3, unit3
 from mcrt.material import Material
 from random import random
 
@@ -12,12 +12,15 @@ class Scene:
     def add(self, obj, color, material):
         self.objects.append((obj, color, material))
 
+    def lightsource(self, lightsource_position):
+        self.lightsource = lightsource_position
+
     def intersect(self, ray, bounces):
         found = False
         min_f = 0
         found_color = (0, 0, 0)
 
-        for obj, color, _material in self.objects:
+        for obj, color, material in self.objects:
             intersect, f = obj.intersect(ray)
 
             if not intersect:
@@ -27,8 +30,18 @@ class Scene:
                 found = True
                 min_f = f
                 found_color = color
+                found_material = material
 
-        return found_color
+        if not found:
+            return (0, 0, 0)
+        else:
+            if found_material == Material.MATERIAL_DIFFUSE:
+                # TODO
+                # return (0, 0, 0)
+                return found_color
+            elif found_material == Material.MATERIAL_MIRROR:
+                # TODO
+                return (0, 0, 0)
 
 
 class Renderer:
@@ -39,7 +52,7 @@ class Renderer:
 
         self.bounces = 5
 
-        self.samples_per_pixel = 5
+        self.samples_per_pixel = 100
 
         self.camera = (0, 0, -1)
         self.screen = (0, 0, 0)
@@ -67,7 +80,7 @@ class Renderer:
 
                     pixel = (xoffset, yoffset, self.screen[2])
 
-                    ray.direction = subtract3(pixel, self.camera)
+                    ray.direction = unit3(subtract3(pixel, self.camera))
 
                     r, g, b = self.scene.intersect(ray, self.bounces)
                     result_r += r
