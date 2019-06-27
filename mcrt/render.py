@@ -1,6 +1,7 @@
-from mcrt.geometry import Ray, subtract3, unit3
+from mcrt.geometry import Ray, subtract3, unit3, dot3, product3
 from mcrt.material import Material
 from random import random
+from math import pow
 
 from PIL import Image
 
@@ -15,30 +16,53 @@ class Scene:
     def lightsource(self, lightsource_position):
         self.lightsource = lightsource_position
 
+    def is_directly_illuminated(self, point):
+        dir = subtract3(self.lightsource, point)
+        d = dot3(dir, dir)
+        ray = Ray(point, unit3(dir))
+
+        found = False
+
+        for obj, _, _ in self.objects:
+            intersect, t = obj.intersect(ray)
+
+            if intersect and t < d:
+                return True
+
+        return True
+
+
     def intersect(self, ray, bounces):
         found = False
-        min_f = 0
+        min_t = 0
         found_color = (0, 0, 0)
+        found_obj = None
 
         for obj, color, material in self.objects:
-            intersect, f = obj.intersect(ray)
+            intersect, t = obj.intersect(ray)
 
             if not intersect:
                 continue
 
-            if (not found) or (f < min_f):
+            if (not found) or (t < min_t):
                 found = True
-                min_f = f
+                min_t = t
                 found_color = color
                 found_material = material
+                found_obj = obj
 
         if not found:
             return (0, 0, 0)
         else:
+            intersection = ray.value(min_t)
+
             if found_material == Material.MATERIAL_DIFFUSE:
-                # TODO
-                # return (0, 0, 0)
-                return found_color
+                if self.is_directly_illuminated(intersection):
+                    cos = abs(dot3(ray.direction, found_obj.normal))
+
+                    return product3(found_color, cos)
+                else:
+                    return (0, 0, 0)
             elif found_material == Material.MATERIAL_MIRROR:
                 # TODO
                 return (0, 0, 0)
@@ -52,12 +76,14 @@ class Renderer:
 
         self.bounces = 5
 
-        self.samples_per_pixel = 100
+        self.samples_per_pixel = 10
 
-        self.camera = (0, 0, -1)
+        self.camera = (0.2, 0.2, -1)
         self.screen = (0, 0, 0)
-        self.projection_w = 1.00
-        self.projection_h = 0.75
+        self.projection_w = 1.00 / 0.5
+        self.projection_h = 0.75 / 0.5
+
+        self.gamma = 1.25
 
     def render(self):
         img = Image.new("RGB", (self.image_w, self.image_h))
@@ -90,9 +116,9 @@ class Renderer:
                     result_b += b
 
                 data.append((
-                    int(result_r / self.samples_per_pixel),
-                    int(result_g / self.samples_per_pixel),
-                    int(result_b / self.samples_per_pixel)
+                    int(255 * pow(result_r / self.samples_per_pixel, self.gamma)),
+                    int(255 * pow(result_g / self.samples_per_pixel, self.gamma)),
+                    int(255 * pow(result_b / self.samples_per_pixel, self.gamma))
                 ))
 
         img.putdata(data)
